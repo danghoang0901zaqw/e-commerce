@@ -14,5 +14,35 @@ class ProductController {
       data: result,
     });
   }
+  async list(req, res, next) {
+    const {
+      page = 1,
+      limit = 10,
+      sortField = "createdAt",
+      sortBy = "DESC",
+      search,
+      category,
+      brand,
+      tag
+    } = req.query;
+    const { products, total } = await productServices.list({
+      page,
+      limit,
+      sortField,
+      sortBy,
+      search,
+      category,
+      brand,
+      tag
+    });
+    return res.status(httpStatus.OK).json({
+      data: products,
+      pagination: {
+        page: +page,
+        limit: +limit,
+        total,
+      },
+    });
+  }
 }
 module.exports = new ProductController();
