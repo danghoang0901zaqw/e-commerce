@@ -55,5 +55,38 @@ class ProductServices {
       total,
     };
   }
+
+  async detail(id) {
+    const product = await models.Product.findByPk(id, {
+      attributes: {
+        exclude: ["brandId", "categoryId"],
+      },
+      include: [
+        {
+          model: models.Category,
+          as: "category",
+        },
+        {
+          model: models.Brand,
+          as: "brand",
+        },
+        {
+          model: models.Tag,
+          as: "tags",
+          through: {
+            attributes: [],
+          },
+        },
+        {
+          model: models.ProductImage,
+          as: "images",
+          attributes: {
+            exclude: ["productId"],
+          },
+        },
+      ],
+    });
+    return product;
+  }
 }
 module.exports = new ProductServices();

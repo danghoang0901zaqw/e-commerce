@@ -23,7 +23,7 @@ class ProductController {
       search,
       category,
       brand,
-      tag
+      tag,
     } = req.query;
     const { products, total } = await productServices.list({
       page,
@@ -33,7 +33,7 @@ class ProductController {
       search,
       category,
       brand,
-      tag
+      tag,
     });
     return res.status(httpStatus.OK).json({
       data: products,
@@ -42,6 +42,13 @@ class ProductController {
         limit: +limit,
         total,
       },
+    });
+  }
+  async detail(req, res, next) {
+    const { id } = req.params;
+    const result = await productServices.detail(id);
+    return res.status(!result ? httpStatus.NOT_FOUND : httpStatus.OK).json({
+      data: result,
     });
   }
 }

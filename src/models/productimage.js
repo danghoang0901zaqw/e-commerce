@@ -13,8 +13,6 @@ module.exports = (sequelize, DataTypes) => {
   }
   ProductImage.init(
     {
-      productId: DataTypes.INTEGER,
-      productImagePath: DataTypes.STRING,
       productId: {
         type: DataTypes.INTEGER,
         references: {
@@ -22,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
           key: "id",
         },
       },
+      productImagePath: DataTypes.STRING,
     },
     {
       sequelize,
