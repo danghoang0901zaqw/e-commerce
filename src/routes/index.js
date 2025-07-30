@@ -1,3 +1,4 @@
+const httpStatus = require("../constants/httpStatus");
 const AppError = require("../controllers/ErrorController");
 const authRouter = require("./auth");
 const brandRouter = require("./brand");

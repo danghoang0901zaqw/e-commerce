@@ -88,5 +88,53 @@ class ProductServices {
     });
     return product;
   }
+  async related({ productId, page, limit }) {
+    const product = await models.Product.findByPk(productId, {
+      include: [
+        {
+          model: models.Tag,
+          as: "tags",
+          through: { attributes: [] },
+          attributes: ["id"],
+        },
+      ],
+    });
+    if (!product || !product.tags || !product.tags.length) {
+      return { result: [], total: 0 };
+    }
+
+    const tagIds = product.tags.map((tag) => tag.id);
+    const tagInclude = {
+      model: models.Tag,
+      as: "tags",
+      where: {
+        id: {
+          [Op.in]: tagIds,
+        },
+      },
+      through: { attributes: [] },
+    };
+    const reqProduct = models.Product.findAll({
+      where: {
+        id: { [Op.ne]: productId },
+      },
+      include: [tagInclude],
+      limit,
+      offset: (page - 1) * limit,
+      distinct: true,
+    });
+    const reqTotal = models.Product.count({
+      where: {
+        id: { [Op.ne]: productId },
+      },
+      include: [tagInclude],
+      distinct: true,
+    });
+    const [result, total] = await Promise.all([reqProduct, reqTotal]);
+    return {
+      result,
+      total,
+    };
+  }
 }
 module.exports = new ProductServices();

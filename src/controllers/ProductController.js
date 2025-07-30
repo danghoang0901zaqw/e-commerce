@@ -47,8 +47,25 @@ class ProductController {
   async detail(req, res, next) {
     const { id } = req.params;
     const result = await productServices.detail(id);
-    return res.status(!result ? httpStatus.NOT_FOUND : httpStatus.OK).json({
+    return res.status(httpStatus.OK).json({
       data: result,
+    });
+  }
+  async related(req, res, next) {
+    const { id } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    const { result, total } = await productServices.related({
+      productId: id,
+      page,
+      limit,
+    });
+    return res.status(httpStatus.OK).json({
+      data: result,
+      pagination: {
+        page: +page,
+        limit: +limit,
+        total,
+      },
     });
   }
 }
