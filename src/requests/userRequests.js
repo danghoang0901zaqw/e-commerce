@@ -5,7 +5,7 @@ const { userMessages } = require("../constants/messages");
 const httpStatus = require("../constants/httpStatus");
 const authServices = require("../services/authServices");
 
-const signUpValidators = validate(
+const signUpValidator = validate(
   checkSchema(
     {
       email: {
@@ -96,4 +96,24 @@ const signUpValidators = validate(
     ["body"]
   )
 );
-module.exports = { signUpValidators };
+
+const signInValidator = validate(
+  checkSchema({
+    email: {
+      notEmpty: {
+        errorMessage: userMessages.EMAIL_IS_REQUIRED,
+      },
+      isEmail: {
+        errorMessage: userMessages.EMAIL_IS_INVALID,
+      },
+      trim: true,
+    },
+    password: {
+      notEmpty: {
+        errorMessage: userMessages.PASSWORD_IS_REQUIRED,
+      },
+      trim: true,
+    },
+  },['body'])
+);
+module.exports = { signUpValidator, signInValidator };

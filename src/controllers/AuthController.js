@@ -17,6 +17,17 @@ class AuthController {
       },
     });
   }
-  signIn(req, res, next) {}
+  async signIn(req, res, next) {
+    const { email, password } = req.body;
+    const result = await authServices.signIn({
+      email,
+      password,
+    });
+    res.status(httpStatus.OK).json({
+      data: {
+        ...result,
+      },
+    });
+  }
 }
 module.exports = new AuthController();
