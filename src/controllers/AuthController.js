@@ -29,5 +29,37 @@ class AuthController {
       },
     });
   }
+  async forgotPassword(req, res, next) {
+    const { email } = req.body;
+    const { id } = req.user;
+    const accessToken = await authServices.forgotPassword({
+      userId: id,
+      email,
+    });
+    res.status(httpStatus.OK).json({
+      data: {
+        accessToken,
+      },
+    });
+  }
+
+  async verifyForgotPassword(req, res, next) {
+    return res.status(httpStatus.OK).json({
+      data: true,
+    });
+  }
+
+  async resetPassword(req, res, next) {
+    const { password, passwordToken } = req.body;
+    const { id } = req.user;
+    const result = await authServices.resetPassword({
+      userId: id,
+      password,
+      passwordToken,
+    });
+    return res.status(httpStatus.OK).json({
+      data: result,
+    });
+  }
 }
 module.exports = new AuthController();

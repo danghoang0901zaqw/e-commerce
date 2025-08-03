@@ -1,17 +1,21 @@
+const ms = require("ms");
+const dotenv = require("dotenv");
+
 const models = require("../models");
-const { hashPassword } = require("../utils/bcrypt");
+const { hashPassword, comparePassword } = require("../utils/bcrypt");
 const AppError = require("../controllers/ErrorController");
 const { userMessages } = require("../constants/messages");
 const httpStatus = require("../constants/httpStatus");
 const { generateToken } = require("../utils/jwt");
-const dotenv = require("dotenv");
+const { userRoles } = require("../constants/common");
 dotenv.config();
+
 class AuthServices {
-  async genAccessToken({ userId, email }) {
+  async genAccessToken({ userId, email, expiresIn }) {
     const accessToken = await generateToken({
       dataUser: { userId, email },
       secretKey: process.env.JWT_ACCESS_SECRET_KEY,
-      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRED,
+      expiresIn: expiresIn || process.env.JWT_ACCESS_TOKEN_EXPIRED,
     });
     return accessToken;
   }
@@ -39,13 +43,14 @@ class AuthServices {
       firstName,
       lastName,
       phoneNumber,
+      roleId: userRoles.User,
     });
     return user.toJSON();
   }
 
   async signIn({ email, password }) {
     const user = await this.findByEmail(email);
-    if (!user || !hashPassword(password, user?.password)) {
+    if (!user || !comparePassword(password, user?.password)) {
       throw new AppError(userMessages.LOGIN_INCORRECT, httpStatus.BAD_REQUEST);
     }
     const {
@@ -63,6 +68,48 @@ class AuthServices {
       accessToken,
       refreshToken,
     };
+  }
+  async forgotPassword({ userId, email }) {
+    const timeExpired = ms(process.env.JWT_FORGOT_PASSWORD_TOKEN_EXPIRED);
+    const accessToken = await this.genAccessToken({
+      userId,
+      email,
+      expiresIn: process.env.JWT_FORGOT_PASSWORD_TOKEN_EXPIRED,
+    });
+    await models.User.update(
+      {
+        resetPasswordToken: accessToken,
+        resetPasswordExpired: new Date(Date.now() + timeExpired),
+      },
+      {
+        where: {
+          id: userId,
+        },
+      }
+    );
+    return accessToken;
+  }
+
+  async resetPassword({ passwordToken, userId, password }) {
+    const result = await models.User.update(
+      {
+        resetPasswordToken: null,
+        resetPasswordExpired: null,
+        password: hashPassword(password),
+        updateAt: new Date(),
+      },
+      {
+        where: {
+          id: userId,
+          resetPasswordToken: passwordToken,
+        },
+      }
+    );
+    return result[0] > 0;
+  }
+  async getUser(userId) {
+    const user = await models.User.findByPk(userId);
+    return user;
   }
 }
 module.exports = new AuthServices();
