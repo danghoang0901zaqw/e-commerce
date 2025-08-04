@@ -8,6 +8,7 @@ const { userMessages } = require("../constants/messages");
 const httpStatus = require("../constants/httpStatus");
 const { generateToken } = require("../utils/jwt");
 const { userRoles } = require("../constants/common");
+const { sendEmailForgotPassword } = require("../utils/s3-ses");
 dotenv.config();
 
 class AuthServices {
@@ -76,17 +77,23 @@ class AuthServices {
       email,
       expiresIn: process.env.JWT_FORGOT_PASSWORD_TOKEN_EXPIRED,
     });
-    await models.User.update(
-      {
-        resetPasswordToken: accessToken,
-        resetPasswordExpired: new Date(Date.now() + timeExpired),
-      },
-      {
-        where: {
-          id: userId,
+    await Promise.all([
+      models.User.update(
+        {
+          resetPasswordToken: accessToken,
+          resetPasswordExpired: new Date(Date.now() + timeExpired),
         },
-      }
-    );
+        {
+          where: {
+            id: userId,
+          },
+        }
+      ),
+      sendEmailForgotPassword({
+        toAddress: email,
+        passwordToken: accessToken,
+      }),
+    ]);
     return accessToken;
   }
 
