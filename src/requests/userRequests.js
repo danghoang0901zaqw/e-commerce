@@ -256,10 +256,42 @@ const resetPasswordValidator = validate(
     ["body"]
   )
 );
+
+const updateUserValidator = validate(
+  checkSchema(
+    {
+      firstName: {
+        optional: true,
+        isLength: {
+          options: { min: 1, max: 20 },
+          errorMessage: userMessages.FIRST_NAME_LENGTH,
+        },
+        trim: true,
+      },
+      lastName: {
+        optional: true,
+        isLength: {
+          options: { min: 1, max: 20 },
+          errorMessage: userMessages.LAST_NAME_LENGTH,
+        },
+        trim: true,
+      },
+      phoneNumber: {
+        optional: true,
+        isMobilePhone: {
+          options: ["any"],
+          errorMessage: userMessages.PHONE_NUMBER_IS_INVALID,
+        },
+      },
+    },
+    ["body"]
+  )
+);
 module.exports = {
   signUpValidator,
   signInValidator,
   forgotPasswordValidator,
   verifyForgotPasswordValidator,
   resetPasswordValidator,
+  updateUserValidator,
 };

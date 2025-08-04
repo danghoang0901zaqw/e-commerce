@@ -61,5 +61,59 @@ class AuthController {
       data: result,
     });
   }
+
+  async myProfile(req, res, next) {
+    const { password, resetPasswordToken, resetPasswordExpired, ...restUser } =
+      req.user;
+    res.status(httpStatus.OK).json({
+      data: {
+        ...restUser,
+      },
+    });
+  }
+  async getUser(req, res, next) {
+    const { id } = req.params;
+    const { password, resetPasswordToken, resetPasswordExpired, ...restUser } =
+      await authServices.getUser(id);
+    res.status(httpStatus.OK).json({
+      data: {
+        ...restUser,
+      },
+    });
+  }
+  async updateMyProfile(req, res, next) {
+    const { id } = req.user;
+    const { firstName, lastName, phoneNumber } = req.body;
+    const user = await authServices.updateUser({
+      userId: id,
+      data: {
+        firstName,
+        lastName,
+        phoneNumber,
+      },
+    });
+    res.status(httpStatus.CREATED).json({
+      data: {
+        ...user,
+      },
+    });
+  }
+  async updateUser(req, res, next) {
+    const { id } = req.params;
+    const { firstName, lastName, phoneNumber } = req.body;
+    const user = await authServices.updateUser({
+      userId: id,
+      data: {
+        firstName,
+        lastName,
+        phoneNumber,
+      },
+    });
+    res.status(httpStatus.CREATED).json({
+      data: {
+        ...user,
+      },
+    });
+  }
 }
 module.exports = new AuthController();

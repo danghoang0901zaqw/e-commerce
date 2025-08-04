@@ -108,8 +108,31 @@ class AuthServices {
     return result[0] > 0;
   }
   async getUser(userId) {
-    const user = await models.User.findByPk(userId);
+    const user = await models.User.findByPk(userId, {
+      raw: true,
+    });
     return user;
+  }
+  async updateUser({ userId, data }) {
+    const allowedFields = ["firstName", "lastName", "phoneNumber"];
+    const updateData = Object.keys(data).reduce((acc, key) => {
+      if (allowedFields.includes(key)) {
+        acc[key] = data[key];
+      }
+      return acc;
+    }, {});
+    const [updatedRows] = await models.User.update(updateData, {
+      where: {
+        id: userId,
+      },
+    });
+    if (updatedRows === 0) {
+      throw new AppError(userMessages.USER_NOT_FOUND, httpStatus.NOT_FOUND);
+    }
+    const updatedUser = await this.getUser(userId);
+    const { password, resetPasswordToken, resetPasswordExpired, ...restUser } =
+      updatedUser;
+    return restUser;
   }
 }
 module.exports = new AuthServices();

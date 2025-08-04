@@ -7,8 +7,10 @@ const {
   forgotPasswordValidator,
   verifyForgotPasswordValidator,
   resetPasswordValidator,
+  updateUserValidator,
 } = require("../requests/userRequests");
 const catchAsync = require("../middlewares/catchAsyncMiddleware");
+const { isAuthorized } = require("../middlewares/authMiddlewares");
 
 router
   .route("/users/sign-up")
@@ -29,4 +31,25 @@ router
 router
   .route("/users/reset-password")
   .post(resetPasswordValidator, catchAsync(authController.resetPassword));
+router
+  .route("/users/my-profile")
+  .get(isAuthorized, catchAsync(authController.myProfile));
+router
+  .route("/users/my-profile/update")
+  .put(
+    isAuthorized,
+    updateUserValidator,
+    catchAsync(authController.updateMyProfile)
+  );
+router
+  .route("/users/:id")
+  .get(isAuthorized, catchAsync(authController.getUser));
+router
+  .route("/users/:id/update")
+  .put(
+    isAuthorized,
+    updateUserValidator,
+    catchAsync(authController.updateUser)
+  );
+
 module.exports = router;
